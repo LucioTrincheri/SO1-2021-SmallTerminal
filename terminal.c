@@ -32,9 +32,26 @@ Datos parsear(char buffer[]){
 	return datos;
 }
 
+
+void tracking(Datos datos, pid_t pidHijo){
+	int status;
+	waitpid(pidHijo,&status,0);
+	
+	if(WIFEXITED(status)){
+		if(WEXITSTATUS(status) != 0){
+			printf("Comando %s con pid %d fallo\n",datos.args[0], pidHijo);
+		} else {
+			printf("Comando %s con pid %d ha finalizado satisfactoriamente\n",datos.args[0], pidHijo);
+		}
+	} else {
+		printf("No se conoce es estado actual del hijo\n");
+	}
+}
+
 int main(int argc, char *argv[]){
 	while(1){
 		printf(PROMPT);
+		//fflush(stdout);
 		char buffer[1024] = {};
 		// Checkear que -1 no sea \0 y arreglar el \n
 		scanf("%1023[^\n]",buffer);
@@ -51,64 +68,36 @@ int main(int argc, char *argv[]){
 			p = fork();
 			
 			if (p < 0) {
-				perror("Ah no manches wey la wea fome");
-		  }
-		  if (p == 0){ 	// Hijo 
+				perror("Fallo al realizar el fork");
+			}
+			if (p == 0){ // Hijo 
 				execv(datos.args[0],datos.args);
 				_exit(-1);
-		  } else { 			// Padre
-				int status;
-				wait(&status);
-				
-				if(WIFEXITED(status)){
-					if(WEXITSTATUS(status) != 0){
-						printf("Mi hijo se murio mal\n");
-					} else {
-						printf("No ampersand termino bien\n");
-					}
-				} else {
-					printf("I cry everyday\n");
-				}
-				fflush(stdout);
-				fflush(stdin);
-		  }	
+			} else { // Padre
+				tracking(datos, p); // El padre espera que finalize el hijo con su pid.
+			}	
 		} else {
 			pid_t p;
 			p = fork();
-			
 			if (p < 0) {
-				perror("Ah no manches wey la wea fome");
-		  }
-		  if (p == 0){ 	// Hijo 
+				perror("Fallo al realizar el fork");
+			}
+			if (p == 0){ // Hijo en este caso trackea a su hijo (nieto padre)
 				pid_t k;
-				k = fork(); // k en hijo = nieto
-				if(k == 0){ // Nieto
+				k = fork();
+				if(k == 0){ // Nieto ejecuta el comando pedido
 					execv(datos.args[0],datos.args);
-					fflush(stdout);
-					fflush(stdin);
 					_exit(-1);
 				} else { // Hijo
-					int statusHijo;
-					waitpid(k, &statusHijo, 0);
-					if(WIFEXITED(statusHijo)){
-						if(WEXITSTATUS(statusHijo) != 0){
-							printf("El comando %s con pid: %d esta muerto\n", datos.args[0] ,k);
-						}else{
-							printf("El hijo trackeado termino 10 punto\n");
-						}
-					} else {
-						printf("El comando %s est...DAFAQ!?\n", datos.args[0]);
-					}
+					tracking(datos, k); // Trackea el estado del nieto
+					printf(PROMPT);
 					fflush(stdout);
-					fflush(stdin);
 					_exit(0);
-					fflush(stdout);
-					fflush(stdin);
 				}
-		  } // Padre no hace nada, lopeea
+			} // El padre en este caso no hace nada, loopea
 		}
 	}
-  return 0;
+	return 0;
 }
 
 // Ver por que cuando llamo a mi nieto mi hijo llega a decir que ampersand bien

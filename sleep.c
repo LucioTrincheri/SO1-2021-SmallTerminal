@@ -6,7 +6,7 @@
 #define PROMPT "$ "
 
 int main(int argc, char *argv[]){
-	sleep(5);
-	printf("Termine de dormir\n");
+	sleep(3);
+	printf("Fin Sleep\n");
   return 0;
 }
