@@ -47,8 +47,6 @@ void tracking(Datos datos, pid_t pidHijo){
 	if(WIFEXITED(status)){
 		if(WEXITSTATUS(status) != 0){
 			printf("Comando %s con pid %d fallo\n",datos.args[0], pidHijo);
-		} else {
-			//printf("Comando %s con pid %d ha finalizado satisfactoriamente\n",datos.args[0], pidHijo);
 		}
 	} else {
 		printf("No se conoce el estado actual del hijo\n");
@@ -60,7 +58,7 @@ int main(int argc, char *argv[]){
 	// que se finalize el proceso o se mande un mensaje de exit
 	while(1){
 		printf(PROMPT);
-		char buffer[LARGO];
+		char buffer[LARGO] = {};
 		// Checkear que -1 no sea \0 y arreglar el \n
 		scanf("%1023[^\n]", buffer);
 		// En caso que se exceda el largo maximo, limpiamos el buffer
@@ -124,7 +122,7 @@ int main(int argc, char *argv[]){
 					fflush(stdout);
 					_exit(0);
 				}
-			} // El padre en este termina el loop y vuelve a esperar entrada.
+			} // El padre termina el loop y vuelve a esperar entrada.
 		}
 	}
 	return 0;
